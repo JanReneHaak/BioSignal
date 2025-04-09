@@ -49,8 +49,8 @@ def fetch_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_R
             "StartDate": status.get("startDateStruct", {}).get("startDate"),
             "Condition": ", ".join(conditions),
             "SponsorName": sponsor,
-            "LocationCountry": ", ".join(countries),
-            "LocationGeoPoints": ", ".join([str(gp) for gp in geopoints])
+            "LocationCountry": countries,
+            "LocationGeoPoints": geopoints
         })
 
     return pd.DataFrame(results)
