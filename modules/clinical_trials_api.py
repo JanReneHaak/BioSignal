@@ -1,12 +1,13 @@
 import requests
 import pandas as pd
 
-def fetch_clinical_trials(term="cancer", max_studies=100):
+def fetch_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_RECRUITING|RECRUITING|ENROLLING_BY_INVITATION"):
 
     base_url = "https://clinicaltrials.gov/api/v2/studies"
     params = {
         "query.term": term,
-        "pageSize": max_studies
+        "filter.overallStatus": status,
+        "pageSize": max_studies,
     }
 
     try:
@@ -32,7 +33,15 @@ def fetch_clinical_trials(term="cancer", max_studies=100):
         status = proto.get("statusModule", {})
         conditions = proto.get("conditionsModule", {}).get("conditions", [])
         sponsor = proto.get("sponsorCollaboratorsModule", {}).get("leadSponsor", {}).get("name", "")
-        locations = proto.get("contactsLocationsModule", {}).get("locations")[0].get("country", [])
+        locations = proto.get("contactsLocationsModule", {}).get("locations", [])
+
+        if isinstance(locations, list):
+            countries = [loc.get("country") for loc in locations if loc and loc.get("country")]
+            geopoints = [loc.get("geoPoint") for loc in locations if loc and loc.get("geoPoint")]
+        else:
+            countries = []
+            geopoints = []
+
 
         results.append({
             "NCTId": ident.get("nctId"),
@@ -40,7 +49,8 @@ def fetch_clinical_trials(term="cancer", max_studies=100):
             "StartDate": status.get("startDateStruct", {}).get("startDate"),
             "Condition": ", ".join(conditions),
             "SponsorName": sponsor,
-            "LocationCountry": locations
+            "LocationCountry": ", ".join(countries),
+            "LocationGeoPoints": ", ".join([str(gp) for gp in geopoints])
         })
 
     return pd.DataFrame(results)
