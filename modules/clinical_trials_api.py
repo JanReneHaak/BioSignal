@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-def fetch_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_RECRUITING|RECRUITING|ENROLLING_BY_INVITATION"):
+def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_RECRUITING|RECRUITING|ENROLLING_BY_INVITATION"):
 
     base_url = "https://clinicaltrials.gov/api/v2/studies"
     params = {
