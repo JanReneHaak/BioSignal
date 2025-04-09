@@ -19,8 +19,6 @@
 
 # Raw data
 raw_data/
-data/
-notebooks/
 *.csv
 *.sqlite
 *.zip
