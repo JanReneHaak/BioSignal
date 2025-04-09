@@ -1,20 +1,46 @@
 import requests
 import pandas as pd
 
-def fetch_clinical_trials(term="CRISPR", max_studies=100): # Set CRISPR as the standard study field and 100 studies max
+def fetch_clinical_trials(term="cancer", max_studies=100):
 
-    base_url = "https://clinicaltrials.gov/api/query/study_fields"
+    base_url = "https://clinicaltrials.gov/api/v2/studies"
     params = {
-        "expr": term,
-        "fields": "NCTId,Condition,BriefTitle,Phase,StudyType,StartDate,LocationCountry,SponsorName",
-        "min_rnk": 1,
-        "max_rnk": max_studies,
-        "fmt": "json"
+        "query.term": term,
+        "pageSize": max_studies
     }
 
-    response = requests.get(base_url, params=params)
-    data = response.json()
-    studies = data["StudyFieldsResponse"]["StudyFields"]
+    try:
+        response = requests.get(base_url, params=params)
+        print(f"Status Code: {response.status_code}") # Help for debugging -> Shows the status code (200 for good response)
 
-    df = pd.DataFrame(studies)
-    return df
+        response.raise_for_status()
+
+        data = response.json()
+
+    except requests.RequestException as e:
+        print(f"Request error: {e}")
+        return pd.DataFrame()
+
+
+    # If everythings fine, the code will continue with the following:
+    studies = data.get("studies", [])
+    results = []
+
+    for study in studies:
+        proto = study.get("protocolSection", {})
+        ident = proto.get("identificationModule", {})
+        status = proto.get("statusModule", {})
+        conditions = proto.get("conditionsModule", {}).get("conditions", [])
+        sponsor = proto.get("sponsorCollaboratorsModule", {}).get("leadSponsor", {}).get("name", "")
+        locations = proto.get("contactsLocationsModule", {}).get("locations")[0].get("country", [])
+
+        results.append({
+            "NCTId": ident.get("nctId"),
+            "BriefTitle": ident.get("briefTitle"),
+            "StartDate": status.get("startDateStruct", {}).get("startDate"),
+            "Condition": ", ".join(conditions),
+            "SponsorName": sponsor,
+            "LocationCountry": locations
+        })
+
+    return pd.DataFrame(results)
