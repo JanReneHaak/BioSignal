@@ -1,12 +1,12 @@
 # Standard python ignores
 *.egg-info
 .coverage
-.ipynb_checkpoints
-.ipynb
 **/__pycache__/
 .python-version
 *.pyc
 **/build
+**/*.ipynb
+**/.ipynb_checkpoints/
 
 # Ignore these macos generated files
 .DS_Store
