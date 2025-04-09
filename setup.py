@@ -13,11 +13,11 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 # Call the setup function
 setup(
-    name='dogchecker',  # package name
+    name='Innovation Intelligence Dashboard',  # package name
     version='1.0',  # package version
-    description="Package dogchecker to suggest dog breeds",  # Short description of your package
+    description="Package to identify innovative trends in the biomedical field.",  # Short description of your package
     packages=find_packages(),  # Automatically find packages in the project directory
     install_requires=requirements,  # Dependencies listed in requirements.txt
     include_package_data=True,  # Include non-Python files like JSON, etc.
-    url="https://github.com/JanReneHaak/dogchecker",  # Replace with your repository URL
+    url="https://github.com/JanReneHaak/Innovation-Intelligence-Dashboard",
 )
