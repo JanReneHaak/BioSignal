@@ -19,6 +19,7 @@
 
 # Raw data
 raw_data/
+reports/
 *.csv
 *.sqlite
 *.zip
