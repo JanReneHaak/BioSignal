@@ -8,6 +8,7 @@ def fetch_publications(term="CRISPR", max_studies=100): # Set CRISPR as the stan
 
     response = requests.get(url)
     data = response.json()
+    studies =
 
 
 
