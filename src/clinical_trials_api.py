@@ -11,15 +11,18 @@ def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_REC
     }
 
     try:
-        response = requests.get(base_url, params=params)
-        print(f"Status Code: {response.status_code}") # Help for debugging -> Shows the status code (200 for good response)
-
+        response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
-
         data = response.json()
 
-    except requests.RequestException as e:
-        print(f"Request error: {e}")
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error {response.status_code}: {e}")
+        return pd.DataFrame()
+    except requests.exceptions.ConnectionError:
+        print("No internet connection or API unreachable.")
+        return pd.DataFrame()
+    except requests.exceptions.Timeout:
+        print("Request timed out.")
         return pd.DataFrame()
 
 
@@ -30,27 +33,32 @@ def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_REC
     for study in studies:
         proto = study.get("protocolSection", {})
         ident = proto.get("identificationModule", {})
-        status = proto.get("statusModule", {})
+        status_module = proto.get("statusModule", {})
+        phases = proto.get("designModule", {}).get("phases", [])
+        phase = phases[0] if phases else "Unknown"
         conditions = proto.get("conditionsModule", {}).get("conditions", [])
         sponsor = proto.get("sponsorCollaboratorsModule", {}).get("leadSponsor", {}).get("name", "")
         locations = proto.get("contactsLocationsModule", {}).get("locations", [])
 
-        if isinstance(locations, list):
-            countries = [loc.get("country") for loc in locations if loc and loc.get("country")]
-            geopoints = [loc.get("geoPoint") for loc in locations if loc and loc.get("geoPoint")]
-        else:
-            countries = []
-            geopoints = []
-
+        for loc in locations:
+            geopoint = loc.get("geoPoint")
+            if not geopoint:
+                continue
 
         results.append({
             "NCTId": ident.get("nctId"),
             "BriefTitle": ident.get("briefTitle"),
-            "StartDate": status.get("startDateStruct", {}).get("startDate"),
+            "StartDate": status_module.get("startDateStruct", {}).get("startDate"),
             "Condition": ", ".join(conditions),
+            "Phase": phase,
             "SponsorName": sponsor,
-            "LocationCountry": countries,
-            "LocationGeoPoints": geopoints
-        })
+            "Country": loc.get("country"),
+            "Lat": geopoint.get("lat"),
+            "Lon": geopoint.get("lon")
+            })
+
+    if not results:
+        print(f"No studies found for term='{term}'.")
+        return pd.DataFrame()
 
     return pd.DataFrame(results)
