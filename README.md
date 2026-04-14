@@ -77,7 +77,7 @@ cartopy
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/biosignal.git
+git clone https://github.com/JanReneHaak/BioSignal
 cd biosignal
 
 # Install dependencies
@@ -160,4 +160,6 @@ MIT — free to use, adapt and build upon.
 
 ---
 
-*Built by [Your Name](https://linkedin.com/in/yourprofile) · Life Science Consultant & Data Scientist*
+*Built by Jan René Haak(https://linkedin.com/in/jan-rene-haak)*
+*Business Relation Development*
+*Molecular Biology & Data Science*
