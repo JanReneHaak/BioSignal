@@ -54,4 +54,4 @@ models/sentence_transformer/
 logs/
 
 #ignore the test file
-test.pys
+test.py
