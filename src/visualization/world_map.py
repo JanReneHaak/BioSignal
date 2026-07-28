@@ -11,15 +11,23 @@ def clinical_trial_map(term, max_studies):
         print("No data to plot.")
         return None
 
+    df["ShortTitle"] = df["BriefTitle"].str[:60] + "..."
+
     fig = px.scatter_geo(
         df,
         lat="Lat",
         lon="Lon",
         color="Phase",
-        hover_name="BriefTitle",
-        hover_data={"SponsorName": True, "NCTId": True, "Country": True, "Lat": False, "Lon": False},
+        hover_name="ShortTitle",
+        hover_data={
+            "SponsorName": True,
+            "NCTId": True,
+            "Country": True,
+            "BriefTitle": False,
+            "Lat": False,
+            "Lon": False,
+        },
         projection="natural earth",
-        title=f"{max_studies} Clinical Trials — {term.capitalize()}"
     )
 
     return fig

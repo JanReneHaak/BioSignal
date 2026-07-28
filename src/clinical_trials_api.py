@@ -42,20 +42,21 @@ def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_REC
 
         for loc in locations:
             geopoint = loc.get("geoPoint")
-            if not geopoint:
+            if not geopoint:  # skip if geoPoint is None or missing
                 continue
 
-        results.append({
-            "NCTId": ident.get("nctId"),
-            "BriefTitle": ident.get("briefTitle"),
-            "StartDate": status_module.get("startDateStruct", {}).get("startDate"),
-            "Condition": ", ".join(conditions),
-            "Phase": phase,
-            "SponsorName": sponsor,
-            "Country": loc.get("country"),
-            "Lat": geopoint.get("lat"),
-            "Lon": geopoint.get("lon")
+
+            results.append({
+                "NCTId": ident.get("nctId"),
+                "BriefTitle": ident.get("briefTitle"),
+                "Condition": ", ".join(conditions),
+                "SponsorName": sponsor,
+                "Phase": phase,
+                "Country": loc.get("country"),
+                "Lat": geopoint.get("lat"),
+                "Lon": geopoint.get("lon"),
             })
+
 
     if not results:
         print(f"No studies found for term='{term}'.")
