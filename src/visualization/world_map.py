@@ -18,8 +18,12 @@ def clinical_trial_map(term, max_studies):
         color="Phase",
         hover_name="BriefTitle",
         hover_data={"SponsorName": True, "NCTId": True, "Country": True, "Lat": False, "Lon": False},
-        projection="natural earth",
-        title=f"{max_studies} Clinical Trials — {term.capitalize()}"
+        projection="natural earth"
+    )
+
+    fig.update_geos(
+    visible=True, resolution=50,
+    showcountries=True, countrycolor="#000000"
     )
 
     return fig
