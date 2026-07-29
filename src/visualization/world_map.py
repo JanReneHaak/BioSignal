@@ -2,13 +2,18 @@ import plotly.express as px
 from src.clinical_trials_api import get_clinical_trials
 
 
-def clinical_trial_map(term, max_studies):
+def clinical_trial_map(term, max_studies, phases=None):
 
-    df = get_clinical_trials(term = term, max_studies = max_studies)
-
+    df = get_clinical_trials(term=term, max_studies=max_studies)
 
     if df.empty:
-        print("No data to plot.")
+        return None
+
+    # Apply phase filter
+    if phases:
+        df = df[df["Phase"].isin(phases)]
+
+    if df.empty:
         return None
 
     df["ShortTitle"] = df["BriefTitle"].str[:60] + "..."
