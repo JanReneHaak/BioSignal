@@ -31,7 +31,7 @@ col1, col2 = st.columns([3, 1])
 with col1:
     disease = st.text_input(
         "Disease or therapeutic area",
-        value="cancer",
+        value=None,
         label_visibility="collapsed",
         placeholder="e.g. cancer, GLP-1, CAR-T, Alzheimer's"
     )
@@ -40,7 +40,7 @@ with col2:
 
 # --- Phase Filter ---
 all_phases = ["PHASE1", "PHASE2", "PHASE3", "PHASE4", "NA", "Unknown"]
-place_holder = "Select the Phase(s) you would like to see!"
+place_holder = "Select the phase(s) of the trials you would like to be displayed!"
 selected_phases = st.multiselect(
     "Filter by trial phase",
     options=all_phases,
@@ -51,6 +51,13 @@ selected_phases = st.multiselect(
 st.divider()
 
 if search:
+
+    if not disease:
+        st.warning("Please enter a disease or therapeutic area first.")
+        st.stop()
+    if not selected_phases:
+        st.warning("Please select at least one trial phase.")
+        st.stop()
 
     # --- Clinical Trials Map ---
     st.markdown("### 🧭 Clinical Trials Radar")
@@ -87,7 +94,7 @@ if search:
         st.caption(f"10 most recent papers on **{disease}** indexed in EuropePMC.")
 
         with st.spinner("Fetching latest publications..."):
-            df_pubs = get_publications(term=disease, max_results_per_year=2)
+            df_pubs = get_publications(term=disease, max_results_per_year=5)
             df_latest = (
                 df_pubs
                 .dropna(subset=["Year"])
@@ -103,7 +110,7 @@ if search:
                     f"_{journal}_ · {int(row['Year'])}  \n"
                     f"[View on EuropePMC](https://europepmc.org/search?query={row['PMID']})"
                     )
-                st.divider()
+                st.markdown("---")
         else:
             st.warning("No publications found.")
 
