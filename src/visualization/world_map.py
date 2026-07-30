@@ -23,6 +23,7 @@ def clinical_trial_map(term, max_studies, phases=None):
         lat="Lat",
         lon="Lon",
         color="Phase",
+<<<<<<< HEAD
         hover_name="ShortTitle",
         hover_data={
             "SponsorName": True,
@@ -33,6 +34,16 @@ def clinical_trial_map(term, max_studies, phases=None):
             "Lon": False,
         },
         projection="natural earth",
+=======
+        hover_name="BriefTitle",
+        hover_data={"SponsorName": True, "NCTId": True, "Country": True, "Lat": False, "Lon": False},
+        projection="natural earth"
+    )
+
+    fig.update_geos(
+    visible=True, resolution=50,
+    showcountries=True, countrycolor="#000000"
+>>>>>>> 7c2749c626d645448e68aa71d784cd83cd617b32
     )
 
     return fig
