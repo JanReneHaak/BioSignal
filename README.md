@@ -2,7 +2,7 @@
 
 > **Early-stage innovation intelligence for Life Sciences — powered by open data & NLP.**
 
-BioSignal aggregates signals from clinical trials, scientific publications, startup funding and patent activity to help pharma, biotech and VC decision-makers spot emerging trends before they become obvious.
+BioSignal aggregates signals from clinical trials, scientific publications and NLP-based topic modelling to help pharma, biotech and VC decision-makers spot emerging trends before they become obvious.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
@@ -15,46 +15,55 @@ BioSignal aggregates signals from clinical trials, scientific publications, star
 
 Imagine a biotech company asking: *"Which therapeutic areas should we invest in over the next 5 years?"*
 
-BioSignal answers that question by combining four open data sources into one interactive dashboard:
+BioSignal answers that question by combining open data sources into one interactive dashboard. Enter a disease or therapeutic area and get three independent intelligence signals instantly:
 
 | Signal | Source | What it reveals |
 |--------|--------|-----------------|
-| Clinical trial activity | ClinicalTrials.gov API v2 | Where R&D investment is flowing |
-| Publication trends | PubMed / EuropePMC | Emerging scientific consensus |
-| Startup & funding data | Crunchbase / Dealroom | Where venture capital is betting |
-| Patent activity | Lens.org API | Early IP moves by major players |
+| Clinical trial activity | ClinicalTrials.gov API v2 | Where R&D investment is flowing, by phase and geography |
+| Publication volume trends | EuropePMC API | How scientific interest has evolved over the last 10 years |
+| Research topic clusters | EuropePMC + BERTopic NLP | Which sub-fields within a disease area are emerging |
 
-**Example insight:** Combining rising Phase I trial counts in cell therapy + increasing publication volume + VC funding spikes → early signal to prioritise cell therapy partnerships.
+**Example insight:** Search "CAR-T" → see Phase I trials surging in Asia, publication volume accelerating since 2021, and BERTopic revealing that solid tumour applications and manufacturing scalability are the fastest-growing research clusters — early signal to prioritise CAR-T solid tumour partnerships.
 
 ---
 
 ## Features
 
-- **Module 1 — ClinicalTrials Radar**: Interactive world map of active studies by indication, sponsor and phase. Filter by disease area, timeframe and country.
-- **Module 2 — Research Trend Detection**: NLP-based topic modelling (BERTopic) on PubMed abstracts. Visualises topic emergence over time and co-occurrence networks.
-- **Module 3 — Startup & Funding Monitor**: Heatmaps of VC investment by geography and therapeutic focus. Tracks funding waves.
-- **Module 4 — Patent Snapshot** *(in progress)*: First-mention timelines for emerging targets; patent activity by company and technology.
+### ✅ Module 1 — Clinical Trials Radar
+Interactive world map of active clinical trials sourced live from ClinicalTrials.gov. Filter by trial phase (Phase 1–4) using a multiselect. Hover tooltips show trial title, sponsor, NCT ID and country.
+
+### ✅ Module 2 — Publication Trends
+Bar chart showing total indexed publications per year for the last 10 years, sourced from EuropePMC. Shows whether scientific interest in a topic is growing, plateauing or declining. Includes a list of the 10 most recent papers with direct links to EuropePMC.
+
+### ✅ Module 3 — Research Topic Clusters
+NLP pipeline using spaCy preprocessing and BERTopic topic modelling on recent abstracts. Identifies distinct research sub-fields within a disease area and ranks them by publication volume. Results are cached per search term for fast repeat queries.
+
+### 🔜 Module 4 — Startup & Funding Monitor *(planned)*
+Heatmaps of VC investment by geography and therapeutic focus using Crunchbase/Dealroom data.
+
+### 🔜 Module 5 — Patent Snapshot *(planned)*
+First-mention timelines for emerging targets via Lens.org API.
 
 ---
 
 ## Tech Stack
 
 ```
-biosignal/
+BioSignal/
 ├── src/
-│   ├── clinical_trials_api.py   # ClinicalTrials.gov v2 API client
-│   ├── pubmed_api.py            # PubMed / EuropePMC fetcher
+│   ├── clinical_trials_api.py      # ClinicalTrials.gov v2 API client
+│   ├── europepmc_api.py            # EuropePMC abstract & count fetcher
 │   ├── nlp/
-│   │   ├── topic_model.py       # BERTopic pipeline
-│   │   └── preprocessing.py    # spaCy text cleaning
-│   └── utils.py
+│   │   ├── topic_model.py          # BERTopic pipeline with UMAP + HDBSCAN
+│   │   └── preprocessing.py       # spaCy lemmatization & text cleaning
+│   └── visualization/
+│       ├── world_map.py            # Plotly scatter_geo map
+│       ├── publication_trends.py   # Plotly bar chart
+│       └── topic_chart.py         # BERTopic horizontal bar chart
 ├── dashboard/
-│   └── app.py                   # Streamlit multi-page app
-├── notebooks/
-│   ├── clinical_trials_exploration.ipynb
-│   └── topic_modelling_pubmed.ipynb
-├── data/                        # Cached API responses (gitignored)
-├── reports/                     # Export-ready charts & summaries
+│   └── app.py                      # Streamlit dashboard
+├── data/                           # Cached API responses (gitignored)
+├── reports/                        # Export-ready charts & summaries
 ├── requirements.txt
 └── README.md
 ```
@@ -68,7 +77,10 @@ plotly
 streamlit
 bertopic
 spacy
-cartopy
+sentence-transformers
+umap-learn
+hdbscan
+scikit-learn
 ```
 
 ---
@@ -78,7 +90,7 @@ cartopy
 ```bash
 # Clone the repo
 git clone https://github.com/JanReneHaak/BioSignal
-cd biosignal
+cd BioSignal
 
 # Install dependencies
 pip install -r requirements.txt
@@ -91,40 +103,48 @@ streamlit run dashboard/app.py
 ### Fetch clinical trials data
 
 ```python
-from src.clinical_trials_api import fetch_clinical_trials
+from src.clinical_trials_api import get_clinical_trials
 
 # Get 50 active CRISPR trials with full location data
-df = fetch_clinical_trials(term="CRISPR", max_studies=50)
+df = get_clinical_trials(term="CRISPR", max_studies=50)
 ```
 
----
+### Fetch publication counts
 
-## Example Output
+```python
+from src.europepmc_api import get_publication_counts
 
-### Clinical Trials World Map
-Active studies plotted by geographic location, coloured by trial phase. Hover for sponsor name, indication and NCT ID.
+# Get total paper count per year for the last 10 years
+df = get_publication_counts(term="GLP-1")
+```
 
-### Topic Emergence Over Time
-Line chart showing paper volume per topic cluster (e.g. mRNA vaccines, CAR-T, GLP-1 agonists) from 2015 to present.
+### Run topic modelling
 
-### Funding Heatmap
-VC investment in Life Science startups by country and therapeutic focus — updated from Crunchbase CSV exports.
+```python
+from src.europepmc_api import get_publications
+from src.nlp.topic_model import get_topics
+from src.nlp.preprocessing import preprocess
+
+df = get_publications(term="CAR-T", max_results_per_year=50)
+abstracts = df["Abstract"].dropna().tolist()
+topic_df = get_topics(abstracts, term="CAR-T")
+```
 
 ---
 
 ## Use Case: Strategic Investment Decision
 
-**Client:** Mid-sized biotech company
 **Question:** *"Where should we focus our pipeline over the next 5 years?"*
 
-BioSignal's answer — combining three independent signals:
+BioSignal's answer — combining three independent signals for "CAR-T":
 
 ```
-Rising Phase I trial counts in cell therapy
-+ Accelerating publication volume (BERTopic cluster growth)
-+ Increased Series A funding in cell therapy startups
-─────────────────────────────────────────────────────────
-→ Recommendation: Prioritise cell therapy partnerships or in-licensing
+Rising Phase I trial counts in solid tumour indications
++ Accelerating publication volume since 2021
++ BERTopic clusters: manufacturing scalability & solid tumour antigens growing fastest
+──────────────────────────────────────────────────────────────────────────────────────
+→ Signal: CAR-T is moving beyond haematology — solid tumour applications are emerging
+→ Recommendation: Prioritise CAR-T solid tumour partnerships or in-licensing
 ```
 
 ---
@@ -132,19 +152,24 @@ Rising Phase I trial counts in cell therapy
 ## Roadmap
 
 - [x] ClinicalTrials.gov v2 API integration
-- [x] Interactive Plotly world map
-- [ ] Streamlit multi-page dashboard
-- [ ] BERTopic NLP pipeline on PubMed abstracts
-- [ ] Startup & funding module (Crunchbase CSV)
+- [x] Interactive Plotly world map with phase filter
+- [x] Streamlit dashboard
+- [x] EuropePMC publication volume trends (10-year view)
+- [x] Latest publications with direct links
+- [x] BERTopic NLP pipeline on EuropePMC abstracts
+- [x] spaCy preprocessing pipeline
+- [x] Result caching with st.cache_data
+- [ ] Startup & funding module (Crunchbase/Dealroom)
 - [ ] Patent snapshot (Lens.org API)
 - [ ] Streamlit Cloud deployment
+- [ ] Signal synthesis — combined insight summary across all modules
 - [ ] PDF export / consulting-style report
 
 ---
 
 ## Background & Motivation
 
-Built as a portfolio project at the intersection of my background in molecular biology (M.Sc. Molecular Biosystems, Uni Magdeburg), nephrology research (Uniklinikum Erlangen / MDIBL Maine, USA) and data science (Le Wagon Bootcamp). The goal: demonstrate that life science domain knowledge + data engineering skills can generate real strategic value — the kind of analysis that usually requires expensive intelligence platforms.
+Built as a portfolio project at the intersection of my background in molecular biology (M.Sc. Molecular Biosystems, Uni Magdeburg), nephrology research (Uniklinikum Erlangen / MDIBL Maine, USA) and data science (Le Wagon Bootcamp). The goal: demonstrate that life science domain knowledge + data engineering skills can generate real strategic value, the kind of analysis that usually requires expensive intelligence platforms.
 
 ---
 
@@ -160,6 +185,5 @@ MIT — free to use, adapt and build upon.
 
 ---
 
-*Built by Jan René Haak(https://linkedin.com/in/jan-rene-haak)*
-*Business Relation Development*
-*Molecular Biology & Data Science*
+*Built by [Jan René Haak](https://linkedin.com/in/jan-rene-haak)*
+*Business Development Specialist · Molecular Biology & Data Science*
