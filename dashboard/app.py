@@ -67,21 +67,6 @@ if search:
         st.warning("Please select at least one trial phase.")
         st.stop()
 
-    # --- Clinical Trials Map ---
-    st.markdown("### 🧭 Clinical Trials Radar")
-    st.caption(f"Active clinical trials for **{disease}**, filtered by selected phases.")
-
-    with st.spinner("Fetching clinical trials..."):
-        fig_map = clinical_trial_map(term=disease, max_studies=100, phases=selected_phases)
-
-    if fig_map is not None:
-        st.plotly_chart(fig_map, width='stretch')
-        st.caption("💡 Hover over a point to see trial details. Colour indicates trial phase.")
-    else:
-        st.warning("No clinical trial data found.")
-
-    st.divider()
-
     # --- Trend + Publications side by side ---
     col_left, col_right = st.columns(2)
 
@@ -136,6 +121,21 @@ if search:
         st.caption("💡 Each bar represents a distinct research cluster found in recent publications. Size reflects number of abstracts.")
     else:
         st.warning("Not enough abstracts to run topic modelling for this term.")
+
+    st.divider()
+
+    # --- Clinical Trials Map ---
+    st.markdown("### 🧭 Clinical Trials Radar")
+    st.caption(f"Active clinical trials for **{disease}**, filtered by selected phases.")
+
+    with st.spinner("Fetching clinical trials..."):
+        fig_map = clinical_trial_map(term=disease, max_studies=100, phases=selected_phases)
+
+    if fig_map is not None:
+        st.plotly_chart(fig_map, width='stretch')
+        st.caption("💡 Hover over a point to see trial details. Colour indicates trial phase.")
+    else:
+        st.warning("No clinical trial data found.")
 
     st.divider()
     st.caption("Built by Jan René Haak · Molecular Biology & Data Science · [LinkedIn](https://linkedin.com/in/jan-rene-haak)")
