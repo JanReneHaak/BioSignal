@@ -1,11 +1,19 @@
 import sys
 import os
+import warnings
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
 from src.visualization.world_map import clinical_trial_map
 from src.visualization.publication_trends import publication_volume_chart
 from src.europepmc_api import get_publications
+from src.visualization.topic_chart import topic_chart
+
+# Caching
+
+@st.cache_data(show_spinner=False)
+def cached_topic_chart(term):
+    return topic_chart(term=term)
 
 # --- Page Config ---
 st.set_page_config(
@@ -13,7 +21,7 @@ st.set_page_config(
     page_icon="🔬",
     layout="wide"
 )
-
+warnings.filterwarnings("ignore")
 # --- Header ---
 st.title("BioSignal 🔬")
 st.markdown("##### Early-stage innovation intelligence for Life Sciences")
@@ -67,7 +75,7 @@ if search:
         fig_map = clinical_trial_map(term=disease, max_studies=100, phases=selected_phases)
 
     if fig_map is not None:
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, width='stretch')
         st.caption("💡 Hover over a point to see trial details. Colour indicates trial phase.")
     else:
         st.warning("No clinical trial data found.")
@@ -85,7 +93,7 @@ if search:
             fig_pubs = publication_volume_chart(term=disease)
 
         if fig_pubs is not None:
-            st.plotly_chart(fig_pubs, use_container_width=True)
+            st.plotly_chart(fig_pubs, width='stretch')
         else:
             st.warning("No publication data found.")
 
@@ -113,6 +121,21 @@ if search:
                 st.markdown("---")
         else:
             st.warning("No publications found.")
+
+st.divider()
+
+# --- Topic Modelling ---
+st.markdown("### 🧬 Research Topic Clusters")
+st.caption(f"NLP-based topic modelling on recent abstracts for **{disease}**. Powered by BERTopic.")
+
+with st.spinner("Running topic modelling — this takes 20–30 seconds on first search..."):
+    fig_topics = cached_topic_chart(disease)
+
+if fig_topics is not None:
+    st.plotly_chart(fig_topics, width='stretch')
+    st.caption("💡 Each bar represents a distinct research cluster found in recent publications. Size reflects number of abstracts.")
+else:
+    st.warning("Not enough abstracts to run topic modelling for this term.")
 
 st.divider()
 st.caption("Built by Jan René Haak · Molecular Biology & Data Science · [LinkedIn](https://linkedin.com/in/jan-rene-haak)")
