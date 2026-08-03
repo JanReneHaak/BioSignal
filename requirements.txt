@@ -4,11 +4,11 @@ numpy==2.2.1
 plotly==6.7.0
 streamlit==1.56.0
 pillow==11.1.0
-bertopic==0.17.4
-hdbscan==0.8.44
-sentence-transformers==5.6.1
-umap-learn==0.5.12
-spacy==3.8.14
+bertopic
+hdbscan
+sentence-transformers
+umap-learn
+spacy
 scikit-learn==1.6.0
 python-dotenv==1.1.0
 pyarrow==23.0.1
