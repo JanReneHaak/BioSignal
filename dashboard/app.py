@@ -122,20 +122,20 @@ if search:
         else:
             st.warning("No publications found.")
 
-st.divider()
+    st.divider()
 
-# --- Topic Modelling ---
-st.markdown("### 🧬 Research Topic Clusters")
-st.caption(f"NLP-based topic modelling on recent abstracts for **{disease}**. Powered by BERTopic.")
+    # --- Topic Modelling ---
+    st.markdown("### 🧬 Research Topic Clusters")
+    st.caption(f"NLP-based topic modelling on recent abstracts for **{disease}**. Powered by BERTopic.")
 
-with st.spinner("Running topic modelling — this takes 20–30 seconds on first search..."):
-    fig_topics = cached_topic_chart(disease)
+    with st.spinner("Running topic modelling — this takes 20–30 seconds on first search..."):
+        fig_topics = cached_topic_chart(disease)
 
-if fig_topics is not None:
-    st.plotly_chart(fig_topics, width='stretch')
-    st.caption("💡 Each bar represents a distinct research cluster found in recent publications. Size reflects number of abstracts.")
-else:
-    st.warning("Not enough abstracts to run topic modelling for this term.")
+    if fig_topics is not None:
+        st.plotly_chart(fig_topics, width='stretch')
+        st.caption("💡 Each bar represents a distinct research cluster found in recent publications. Size reflects number of abstracts.")
+    else:
+        st.warning("Not enough abstracts to run topic modelling for this term.")
 
-st.divider()
-st.caption("Built by Jan René Haak · Molecular Biology & Data Science · [LinkedIn](https://linkedin.com/in/jan-rene-haak)")
+    st.divider()
+    st.caption("Built by Jan René Haak · Molecular Biology & Data Science · [LinkedIn](https://linkedin.com/in/jan-rene-haak)")
