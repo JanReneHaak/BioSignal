@@ -1,6 +1,7 @@
 import sys
 import os
 import warnings
+from datetime import date
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
@@ -35,7 +36,9 @@ st.markdown(
 st.divider()
 
 # --- Single Search Bar ---
-col1, col2 = st.columns([3, 1])
+MIN_DATE = date(2000, 1, 1)
+today = date.today()
+col1, col2 , col3 = st.columns([4, 2, 1])
 with col1:
     disease = st.text_input(
         "Disease or therapeutic area",
@@ -44,7 +47,27 @@ with col1:
         placeholder="e.g. cancer, GLP-1, CAR-T, Alzheimer's"
     )
 with col2:
+    date_range = st.date_input(
+        "Publication date range",
+        value=(MIN_DATE, today),
+        min_value=MIN_DATE,
+        max_value=today,
+        format="YYYY-MM-DD",
+        label_visibility="collapsed",
+    )
+
+with col3:
     search = st.button("🔍 Explore", use_container_width=True)
+
+# While the user is mid-selection, Streamlit returns a 1-element tuple
+if isinstance(date_range, tuple) and len(date_range) == 2:
+    start_date, end_date = date_range
+    year_lower = start_date.year
+    year_upper = end_date.year
+    range_complete = True
+else:
+    start_date = end_date = year_lower = year_upper = None
+    range_complete = False
 
 # --- Phase Filter ---
 all_phases = ["PHASE1", "PHASE2", "PHASE3", "PHASE4", "NA", "Unknown"]
@@ -63,6 +86,9 @@ if search:
     if not disease:
         st.warning("Please enter a disease or therapeutic area first.")
         st.stop()
+    if not range_complete:
+        st.warning("Please select an end date to complete the date range.")
+        st.stop()
     if not selected_phases:
         st.warning("Please select at least one trial phase.")
         st.stop()
@@ -75,7 +101,7 @@ if search:
         st.caption(f"Total indexed publications per year for **{disease}**.")
 
         with st.spinner("Fetching publication trends..."):
-            fig_pubs = publication_volume_chart(term=disease)
+            fig_pubs = publication_volume_chart(term=disease, year_lower=year_lower, year_upper=year_upper)
 
         if fig_pubs is not None:
             st.plotly_chart(fig_pubs, width='stretch')
@@ -87,7 +113,7 @@ if search:
         st.caption(f"10 most recent papers on **{disease}** indexed in EuropePMC.")
 
         with st.spinner("Fetching latest publications..."):
-            df_pubs = get_publications(term=disease, max_results_per_year=5)
+            df_pubs = get_publications(term=disease, max_results_per_year=5, year_lower=year_lower, year_upper=year_upper)
             df_latest = (
                 df_pubs
                 .dropna(subset=["Year"])
@@ -129,7 +155,7 @@ if search:
     st.caption(f"Active clinical trials for **{disease}**, filtered by selected phases.")
 
     with st.spinner("Fetching clinical trials..."):
-        fig_map = clinical_trial_map(term=disease, max_studies=100, phases=selected_phases)
+        fig_map = clinical_trial_map(term=disease, max_studies=100, phases=selected_phases, year_lower=year_lower, year_upper=year_upper)
 
     if fig_map is not None:
         st.plotly_chart(fig_map, width='stretch')

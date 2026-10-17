@@ -1,12 +1,18 @@
 import requests
 import pandas as pd
+from datetime import datetime
 
-def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_RECRUITING|RECRUITING|ENROLLING_BY_INVITATION"):
+def get_clinical_trials(term="cancer", max_studies=100, status = "ACTIVE_NOT_RECRUITING|RECRUITING|ENROLLING_BY_INVITATION", year_lower=None, year_upper=None, date_field = "StartDate"):
+
+    now = datetime.now().year
+    year_lower = year_lower if year_lower is not None else now - 10
+    year_upper = year_upper if year_upper is not None else now
 
     base_url = "https://clinicaltrials.gov/api/v2/studies"
     params = {
         "query.term": term,
         "filter.overallStatus": status,
+        "filter.advanced": f"AREA[{date_field}]RANGE[{year_lower}-01-01,{year_upper}-12-31]",
         "pageSize": max_studies,
     }
 

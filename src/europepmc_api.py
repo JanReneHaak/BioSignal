@@ -2,17 +2,12 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-import requests
-import pandas as pd
-from datetime import datetime
 
-
-def get_publication_counts(term="cancer"):
+def get_publication_counts(term="cancer", year_lower=datetime.now().year-10, year_upper=datetime.now().year):
     """Fetch total publication count per year from EuropePMC — no abstract download needed."""
 
     base_url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-    current_year = datetime.now().year
-    years = range(current_year - 10, current_year + 1)
+    years = range(year_lower, year_upper)
 
     results = []
 
@@ -45,12 +40,11 @@ def get_publication_counts(term="cancer"):
     return pd.DataFrame(results)
 
 
-def get_publications(term="cancer", max_results_per_year=20):
+def get_publications(term="cancer", max_results_per_year=20, year_lower=datetime.now().year-10, year_upper=datetime.now().year):
     """Fetch abstracts for NLP/BERTopic — keeps the per-year sampling approach."""
 
     base_url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-    current_year = datetime.now().year
-    years = range(current_year - 10, current_year + 1)
+    years = range(year_lower, year_upper)
 
     all_results = []
 
